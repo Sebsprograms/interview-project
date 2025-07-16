@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:interview_project/model/sensor.dart';
 import 'package:rxdart/subjects.dart';
 

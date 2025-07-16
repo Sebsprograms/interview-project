@@ -21,7 +21,7 @@ class Sensor {
     return Sensor(
       id: Random().nextInt(1000),
       name: 'Sensor $sensorNumber',
-      description: 'Some description of sensor: #$sensorNumber...',
+      description: 'Some description of sensor: #$sensorNumber',
       value: Random().nextDouble() * 100,
     );
   }
