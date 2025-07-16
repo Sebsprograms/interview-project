@@ -6,6 +6,8 @@ part 'senor_list_store.g.dart';
 
 enum TemperatureSort { ascending, descending, none }
 
+const TemperatureSort _defaultTemperatureSort = TemperatureSort.none;
+
 // ignore: library_private_types_in_public_api
 class SensorListStore = _SensorListStore with _$SensorListStore;
 
@@ -23,63 +25,100 @@ abstract class _SensorListStore with Store {
   @observable
   String searchQuery = '';
 
+  /// Current temperature sorting state (none, ascending, descending)
   @observable
-  TemperatureSort isSortedByTemperature = TemperatureSort.none;
+  TemperatureSort temperatureSortState = _defaultTemperatureSort;
+
+  /// Returns a human-readable description of the current sort state
+  String get sortStateDescription {
+    switch (temperatureSortState) {
+      case TemperatureSort.none:
+        return 'No sorting';
+      case TemperatureSort.ascending:
+        return 'Temperature: Low to High';
+      case TemperatureSort.descending:
+        return 'Temperature: High to Low';
+    }
+  }
 
   @action
   watchSensors() {
     sensorRepository.sensorsStream.listen((List<Sensor> sensors) {
-      List<Sensor> filteredSensors = sensors;
+      try {
+        List<Sensor> filteredSensors = sensors;
 
-      // Apply search filter if query exists
-      if (searchQuery.isNotEmpty) {
-        filteredSensors = sensors
-            .where(
-              (sensor) =>
-                  sensor.name.toLowerCase().contains(searchQuery.toLowerCase()),
-            )
-            .toList();
+        // Apply search filter if query exists
+        if (searchQuery.isNotEmpty) {
+          filteredSensors = _applySearchFilter(sensors, searchQuery);
+        }
+        _applyTemperatureSort(filteredSensors);
+
+        updateSensorsObservable(filteredSensors);
+      } catch (e) {
+        // Handle any errors during sensor processing
+        print('Error processing sensors: $e');
       }
-
-      if (isSortedByTemperature == TemperatureSort.ascending) {
-        filteredSensors.sort((a, b) => a.value.compareTo(b.value));
-      } else if (isSortedByTemperature == TemperatureSort.descending) {
-        filteredSensors.sort((a, b) => b.value.compareTo(a.value));
-      }
-
-      updateSensorsObservable(filteredSensors);
     });
+  }
+
+  /// Applies search filter to the given sensor list
+  List<Sensor> _applySearchFilter(List<Sensor> sensors, String query) {
+    return sensors
+        .where(
+          (sensor) => sensor.name.toLowerCase().contains(query.toLowerCase()),
+        )
+        .toList();
+  }
+
+  /// Applies temperature sorting to the given sensor list based on current state
+  void _applyTemperatureSort(List<Sensor?> sensors) {
+    switch (temperatureSortState) {
+      case TemperatureSort.ascending:
+        sensors.sort((a, b) => (a?.value ?? 0).compareTo(b?.value ?? 0));
+        break;
+      case TemperatureSort.descending:
+        sensors.sort((a, b) => (b?.value ?? 0).compareTo(a?.value ?? 0));
+        break;
+      case TemperatureSort.none:
+        // No sorting needed
+        break;
+    }
   }
 
   @action
   List<Sensor?> searchSensors(String query) {
-    searchQuery = query;
-    final filteredSensors = sensors
+    searchQuery = query.trim();
+    if (searchQuery.isEmpty) {
+      return sensors.toList();
+    }
+    return sensors
         .where(
           (Sensor? sensor) =>
-              sensor?.name.toLowerCase().contains(query.toLowerCase()) ?? false,
+              sensor?.name.toLowerCase().contains(searchQuery.toLowerCase()) ??
+              false,
         )
         .toList();
-    return filteredSensors;
   }
 
+  /// Cycles through temperature sort states: none → ascending → descending → none
   @action
   List<Sensor?> sortSensorsByTemperature() {
-    List<Sensor?> sortedSensors = sensors.toList();
-    switch (isSortedByTemperature) {
+    // Cycle to next sort state
+    switch (temperatureSortState) {
       case TemperatureSort.none:
-        isSortedByTemperature = TemperatureSort.ascending;
-        sortedSensors.sort((a, b) => (a?.value ?? 0).compareTo(b?.value ?? 0));
+        temperatureSortState = TemperatureSort.ascending;
         break;
       case TemperatureSort.ascending:
-        isSortedByTemperature = TemperatureSort.descending;
-        sortedSensors.sort((a, b) => (b?.value ?? 0).compareTo(a?.value ?? 0));
+        temperatureSortState = TemperatureSort.descending;
         break;
       case TemperatureSort.descending:
-        isSortedByTemperature = TemperatureSort.none;
-        sortedSensors = sensors.toList();
+        temperatureSortState = TemperatureSort.none;
         break;
     }
+
+    // Apply sorting to current sensors
+    final sortedSensors = sensors.toList();
+    _applyTemperatureSort(sortedSensors);
     sensors = ObservableList.of(sortedSensors);
     return sortedSensors;
   }
@@ -98,5 +137,11 @@ abstract class _SensorListStore with Store {
   @action
   void updateSensor(Sensor sensor) {
     sensorRepository.updateSensor(sensor);
+  }
+
+  /// Resets temperature sort state to none
+  @action
+  void resetTemperatureSort() {
+    temperatureSortState = _defaultTemperatureSort;
   }
 }

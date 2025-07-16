@@ -45,24 +45,24 @@ mixin _$SensorListStore on _SensorListStore, Store {
     });
   }
 
-  late final _$isSortedByTemperatureAtom = Atom(
-    name: '_SensorListStore.isSortedByTemperature',
+  late final _$temperatureSortStateAtom = Atom(
+    name: '_SensorListStore.temperatureSortState',
     context: context,
   );
 
   @override
-  TemperatureSort get isSortedByTemperature {
-    _$isSortedByTemperatureAtom.reportRead();
-    return super.isSortedByTemperature;
+  TemperatureSort get temperatureSortState {
+    _$temperatureSortStateAtom.reportRead();
+    return super.temperatureSortState;
   }
 
   @override
-  set isSortedByTemperature(TemperatureSort value) {
-    _$isSortedByTemperatureAtom.reportWrite(
+  set temperatureSortState(TemperatureSort value) {
+    _$temperatureSortStateAtom.reportWrite(
       value,
-      super.isSortedByTemperature,
+      super.temperatureSortState,
       () {
-        super.isSortedByTemperature = value;
+        super.temperatureSortState = value;
       },
     );
   }
@@ -145,11 +145,23 @@ mixin _$SensorListStore on _SensorListStore, Store {
   }
 
   @override
+  void resetTemperatureSort() {
+    final _$actionInfo = _$_SensorListStoreActionController.startAction(
+      name: '_SensorListStore.resetTemperatureSort',
+    );
+    try {
+      return super.resetTemperatureSort();
+    } finally {
+      _$_SensorListStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 sensors: ${sensors},
 searchQuery: ${searchQuery},
-isSortedByTemperature: ${isSortedByTemperature}
+temperatureSortState: ${temperatureSortState}
     ''';
   }
 }
