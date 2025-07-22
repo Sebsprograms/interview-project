@@ -11,7 +11,10 @@ I use this Screen/Content combo so the Bloc is only available on the screen,
 even though its technically overkill for a one-page app. Typically I'd break 
 out certain components into their own widgets/components dir, but I tried to 
 stay true to the spirit of the task and not over-engineer just because i have
-extra time, and the files under 200 lines
+extra time, and the files under 200 lines.
+
+Typically Id also extrapolate a lot of these hardcoded numbers for 
+padding/fontsize/etc, but for time i just put what looked good
 */
 
 class SensorsListScreen extends StatelessWidget {
@@ -67,7 +70,6 @@ class SensorsListScreenContent extends StatelessWidget {
   Widget getLoadedWidget(SensorsState state, Function(String) searchSensors) {
     return Column(
       children: [
-        // Search bar
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: TextField(
@@ -79,7 +81,6 @@ class SensorsListScreenContent extends StatelessWidget {
             onChanged: searchSensors,
           ),
         ),
-        // Sensor list
         Expanded(
           child: state.filteredSensors.isEmpty
               ? const Center(
