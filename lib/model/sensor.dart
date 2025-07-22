@@ -25,6 +25,12 @@ class Sensor {
       value: Random().nextDouble() * 100,
     );
   }
+  // i was shown this early on and its become a habit for me for easy searchability
+  bool matchesSearchQuery(String query) {
+    String lowerQuery = query.toLowerCase();
+    return name.toLowerCase().contains(lowerQuery) ||
+        description.toLowerCase().contains(lowerQuery);
+  }
 
   Sensor copyWith({double? value, String? name, String? description}) {
     return Sensor(
